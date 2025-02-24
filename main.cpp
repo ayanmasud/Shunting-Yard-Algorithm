@@ -28,9 +28,14 @@ int main() {
   for (int i = 0; i < inputLen; i++) {
     if (input[i] == '^') { // ^ operator
       if (opStack[opStackIndex-1] == '^') { // same precedence
-	for (int j = 0; j < strlen(opStack); j++) {
-          output[outputIndex] = opStack[opStackIndex-1];
+	int len = strlen(opStack);
+	for (int j = 0; j < len; j++) {
+	  if (opStack[opStackIndex-1] == '(') { // create barrier at (
+	    break;
+          }
+	  output[outputIndex] = opStack[opStackIndex-1];
           outputIndex++;
+	  opStack[opStackIndex-1] = '\0';
           opStackIndex--;
         }
         opStack[opStackIndex] = input[i];
@@ -41,19 +46,26 @@ int main() {
 	opStackIndex++;
       }
     }
-    else if (input[i] == 'x' || input[i] == '/') { // x or / operators
+    else if (input[i] == '*' || input[i] == '/') { // * or / operators
       if (opStack[opStackIndex-1] == '-' || opStack[opStackIndex-1] == '+') { // previous is smaller
 	opStack[opStackIndex] = input[i];
         opStackIndex++;
+	
       }
       else { // previous is greater or same
-	for (int j = 0; j < strlen(opStack); j++) {
-	  if (opStack[j] == '+' || opStack[j] == '-') {
+	int len = strlen(opStack);
+	for (int j = 0; j < len; j++) {
+	  if (opStack[opStackIndex-1] == '(') { // create a barrier at (
+            break;
+          }
+	  if (opStack[opStackIndex-1] == '+' || opStack[opStackIndex-1] == '-') {
 	    break;
 	  }
           output[outputIndex] = opStack[opStackIndex-1];
           outputIndex++;
+	  opStack[opStackIndex-1] = '\0';
           opStackIndex--;
+	  
         }
         opStack[opStackIndex] = input[i];
         opStackIndex++;
@@ -64,10 +76,15 @@ int main() {
 	opStack[opStackIndex] = input[i];
 	opStackIndex++;
       }
-      else { // if not, its garunteed to be the same or of lower precedence
-	for (int j = 0; j < strlen(opStack); j++) {
+      else { // if not, its guaranteed to be the same or of lower precedence
+	int len = strlen(opStack);
+	for (int j = 0; j < len; j++) {
+	  if (opStack[opStackIndex-1] == '(') { // create barrier at (
+	    break;
+	  }
 	  output[outputIndex] = opStack[opStackIndex-1];
 	  outputIndex++;
+	  opStack[opStackIndex-1] = '\0';
 	  opStackIndex--;
 	}
 	opStack[opStackIndex] = input[i];
@@ -75,20 +92,45 @@ int main() {
       }
     }
     else if (input[i] == '(') { // inside a parenthesis!
-
+      opStack[opStackIndex] = input[i];
+      opStackIndex++;
     }
-    else {
+    else if (input[i] == ')') { // parenthesis ended
+      cout << "len" << strlen(opStack) << endl;
+      int len = strlen(opStack);
+      for (int j = 0; j < len; j++) {
+	cout << output << endl;
+	cout << "fwhs" << endl;
+	cout << opStack << endl;
+	cout << opStackIndex << endl;
+	if (opStack[opStackIndex-1] == '(') { // stop at (
+	  opStack[opStackIndex-1] = '\0';
+	  opStackIndex--;
+	  cout << "happened" << endl;
+	  break;
+	}
+	output[outputIndex] = opStack[opStackIndex-1];
+	outputIndex++;
+	opStack[opStackIndex-1] = '\0';
+	opStackIndex--;
+      }
+    }
+    else { // not an operator
       output[outputIndex] = input[i];
       outputIndex++;
     }
   }
 
-  for (int j = 0; j < strlen(opStack); j++) {
+  cout << strlen(opStack) << endl;
+  cout << output << endl;
+  int len = strlen(opStack);
+  for (int j = 0; j < len; j++) {
     output[outputIndex] = opStack[opStackIndex-1];
     outputIndex++;
+    opStack[opStackIndex-1] = '\0';
     opStackIndex--;
   }
-  
+
   cout << output;
 
   return 0;
