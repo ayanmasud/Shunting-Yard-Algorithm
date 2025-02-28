@@ -1,33 +1,57 @@
 #include <iostream>
 #include <cstring>
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
 
 using namespace std;
 
 struct Node {
-  char value;
-  //struct Node next;
+  char* value;
+  struct Node* next;
 
   Node() {
     next = NULL;
+    value = nullptr;
   }
 };
+void enqueue(Node* &head, char* &data);
+void dequeue(Node* head);
 
-struct Queue {
-  char* value;
-  struct Queue* next;
-
-  Queue() {
-    next = NULL;
+void enqueue(Node* &head, char* &data) {
+  Node* newNode = new Node();
+  newNode->value = data;
+  newNode->next = NULL;
+  
+  if (head == NULL) {
+    head = newNode;
+  } else {
+    Node* temp = head;
+    while (temp->next != NULL) {
+      temp = temp->next;
+    }
+    temp->next = newNode;
   }
-};
-void enqueue(Queue* &head, char* &data);
-void dequeue(Queue* head);
+}
+
+Node* push(Node* &head, char* &data) {
+  Node* newNode = new Node();
+  newNode->value = data;
+  newNode->next = head;
+  return newNode;
+}
+
+char* pop(Node* &head) { // CREATE A DESTRUCToR
+  char* data = head->value;
+  Node* temp = head->next;
+  //delete head;
+  head = temp;
+  return data;
+}
+Node* push(Node* &head, char* &data);
+char* pop(Node* &head);
 
 int main() {
-  //Stack* stackHead = NULL; // head of stack // I DONT THINK I CAN DO STACKS LIKE THIS. THIS IS NOT A LINKED LIST
-  stack<Node> st;
-  Node na = new Node();
+  /*Stack* stackHead = NULL; // head of stack 
+  Stack* na = new Stack();
   char aa = 'a';
   na.value = 'a';
   Node nb = new Node();
@@ -36,28 +60,16 @@ int main() {
   st.push(na);
   st.push(nb);
 
-  while (!st.empty()) {
+  
+  while () {
     cout << ' ' << st.top();
     st.pop();
-  }
+    }*/
 
-  Queue* queueHead = NULL; // head of queue
+  Node* queueHead = NULL; // head of queue
+  Node* stackHead = NULL; // head of stack
 
-  char a = 'a';
-  char* ap = &a;
-  char b = 'b';
-  char* bp = &b;
-  char c = '+';
-  char* cp = &c;
-  enqueue(queueHead, ap);
-  enqueue(queueHead, bp);
-  enqueue(queueHead, cp);
-
-  // PRINTING INDIV NOT WORKING FOR SOME GOOFY REASON
-  if (queueHead->next != NULL) {//->value;
-    cout << queueHead->next->value;
-  }
-
+  
   
   
   char input[20];
@@ -90,15 +102,16 @@ int main() {
 	}*/
       //else {
       // since the rest are smaller or same, just add it to the next
-      opStack[opStackIndex] = '^';
+      opStack[opStackIndex] = '^'; // push
       opStackIndex++;
 	//}
     }
     else if (input[i] == '*' || input[i] == '/') { // * or / operators
       if (opStack[opStackIndex-1] == '-' || opStack[opStackIndex-1] == '+') { // previous is smaller
-	opStack[opStackIndex] = input[i];
+	opStack[opStackIndex] = input[i]; // push
+	char* pushed = &(input[i]);
+        stackHead = push(stackHead, pushed);
         opStackIndex++;
-	
       }
       else { // previous is greater or same
 	int len = strlen(opStack);
@@ -110,18 +123,23 @@ int main() {
 	    break;
 	  }
           output[outputIndex] = opStack[opStackIndex-1];
-          outputIndex++;
+	  char* popped = pop(stackHead); // pop
+	  enqueue(queueHead, popped); // enqueue
+	  outputIndex++;
 	  opStack[opStackIndex-1] = '\0';
           opStackIndex--;
-	  
         }
-        opStack[opStackIndex] = input[i];
+        opStack[opStackIndex] = input[i]; // push
+	char* pushed = &(input[i]);
+	stackHead = push(stackHead, pushed);
         opStackIndex++;
       }
     }
     else if (input[i] == '+' || input[i] == '-') { // + or - operators
       if (opStackIndex == 0) { // if its the first in the stack.
-	opStack[opStackIndex] = input[i];
+	opStack[opStackIndex] = input[i]; // push
+	char* pushed = &(input[i]);
+        stackHead = push(stackHead, pushed);
 	opStackIndex++;
       }
       else { // if not, its guaranteed to be the same or of lower precedence
@@ -131,33 +149,37 @@ int main() {
 	    break;
 	  }
 	  output[outputIndex] = opStack[opStackIndex-1];
+	  char* popped = pop(stackHead); // pop
+          enqueue(queueHead, popped); // enqueue
 	  outputIndex++;
 	  opStack[opStackIndex-1] = '\0';
 	  opStackIndex--;
 	}
-	opStack[opStackIndex] = input[i];
+	opStack[opStackIndex] = input[i]; // push
+	char* pushed = &(input[i]);
+        stackHead = push(stackHead, pushed);
 	opStackIndex++;
       }
     }
     else if (input[i] == '(') { // inside a parenthesis!
-      opStack[opStackIndex] = input[i];
+      opStack[opStackIndex] = input[i]; // push
+      char* pushed = &(input[i]);
+      stackHead = push(stackHead, pushed);
       opStackIndex++;
     }
     else if (input[i] == ')') { // parenthesis ended
       //cout << "len" << strlen(opStack) << endl;
       int len = strlen(opStack);
       for (int j = 0; j < len; j++) {
-	//cout << output << endl;
-	//cout << "fwhs" << endl;
-	//cout << opStack << endl;
-	//cout << opStackIndex << endl;
 	if (opStack[opStackIndex-1] == '(') { // stop at (
 	  opStack[opStackIndex-1] = '\0';
+	  char* popped = pop(stackHead); // pop
 	  opStackIndex--;
-	  //cout << "happened" << endl;
 	  break;
 	}
 	output[outputIndex] = opStack[opStackIndex-1];
+	char* popped = pop(stackHead); // pop
+	enqueue(queueHead, popped); // enqueue
 	outputIndex++;
 	opStack[opStackIndex-1] = '\0';
 	opStackIndex--;
@@ -165,6 +187,8 @@ int main() {
     }
     else { // not an operator
       output[outputIndex] = input[i];
+      char* cp = &(output[outputIndex]); // enqueue
+      enqueue(queueHead, cp);
       outputIndex++;
     }
   }
@@ -174,12 +198,24 @@ int main() {
   int len = strlen(opStack);
   for (int j = 0; j < len; j++) {
     output[outputIndex] = opStack[opStackIndex-1];
+    char* popped = pop(stackHead); // pop
+    enqueue(queueHead, popped); // enqueue
     outputIndex++;
     opStack[opStackIndex-1] = '\0';
     opStackIndex--;
   }
 
-  cout << output;
+  cout << output << endl;
+
+  // display the queue:
+  if (queueHead != NULL) {
+    Node* temp = queueHead;
+    while (temp != NULL) {
+      cout << *temp->value << " ";  // Dereference value to print the character
+      temp = temp->next;
+    }
+    cout << endl;
+  }
 
   return 0;
 }
@@ -206,24 +242,24 @@ public:
   }
   };*/
 
-void enqueue(Queue* &head, char* &data) {
+/*void enqueue(Node* &head, char* &data) {
   // Add the element to the rear
   if (head == NULL){
-    Queue* newHead = new Queue();
+    Node* newHead = new Node();
     newHead->value = data;
     head = newHead;
   }
   else if (head->next == NULL) {
-    Queue* newNode = new Queue();
+    Node* newNode = new Node();
     newNode->value = data;
     head->next = newNode;
   }
   else {
     enqueue(head->next, data); // recurse until the end of the queue
   }
-}
+  }*/
 
-void dequeue(Queue* head) {
+void dequeue(Node* head) {
   /*if (size == 0) {
     cout << "Queue is empty" << endl;
     return;
