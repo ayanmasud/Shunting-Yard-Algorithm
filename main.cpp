@@ -1,8 +1,7 @@
 #include <iostream>
 #include <cstring>
-// GOT THE PUSH POP WORKING YAY
-// cleaned up the code as well
-// next class figure out how to implement the peek in the algorithm. maybe replace the opStack[opStackIndex-1] or something. im going to sleep now
+#include "btn.h"
+// got the peek working. that was actually really easy. now time to figure out the binary tree
 
 using namespace std;
 
@@ -20,6 +19,7 @@ void enqueue(Node* &head, char* &data);
 char* dequeue(Node* &head);
 void push(Node* &head, char* &data);
 char* pop(Node* &head);
+char* peek(Node* &head);
 
 void enqueue(Node* &head, char* &data) {
   Node* newNode = new Node();
@@ -66,6 +66,36 @@ char* pop(Node* &head) {
   return data;
 }
 
+char* peek(Node* &head) {
+  if (head == NULL) {
+    return nullptr;
+  }
+  return head->value;
+}
+
+/*class btn { // binary tree node class
+public:
+  char* value;
+  btn* left;
+  btn* right;
+
+  btn() {
+    left = NULL;
+    right = NULL;
+    value = nullptr;
+  }
+  };*/
+
+struct btnStack {
+  btn* value;
+  struct btn* next;
+
+  btnStack() {
+    next = NULL;
+    value = NULL;
+  }
+};
+
 int main() {
   Node* queueHead = NULL; // head of queue
   Node* stackHead = NULL; // head of stack
@@ -89,13 +119,17 @@ int main() {
       opStackIndex++;
     }
     else if (input[i] == '*' || input[i] == '/') { // * or / operators
-      if (opStackIndex == 0 || opStack[opStackIndex-1] == '+' || opStack[opStackIndex-1] == '-') { // previous is smaller or end of stack
-        opStack[opStackIndex] = input[i];
+      if (opStackIndex == 0 || *(peek(stackHead)) == '+' || *(peek(stackHead)) == '-') {//opStack[opStackIndex-1] == '+' || opStack[opStackIndex-1] == '-') { // previous is smaller or end of stack
+	//char test = opStack[opStackIndex-1];
+	//char* ptest = *test;
+	//char* test = peek(stackHead);
+	//cout << "test" << *test << endl;
+	opStack[opStackIndex] = input[i];
         char* pushed = &(input[i]);
         push(stackHead, pushed);
         opStackIndex++;
       } else { // previous is greator or same
-        while (opStackIndex > 0 && opStack[opStackIndex-1] != '(' && opStack[opStackIndex-1] != '+' && opStack[opStackIndex-1] != '-') { // create a barrier at ( and also continue with the the + and -
+        while (opStackIndex > 0 && *(peek(stackHead)) != '(' && *(peek(stackHead)) != '+' && *(peek(stackHead)) != '-') { // create a barrier at ( and also continue with the the + and -
           output[outputIndex] = opStack[opStackIndex-1];
           char* popped = pop(stackHead); // pop
           enqueue(queueHead, popped); // enqueue
@@ -115,7 +149,7 @@ int main() {
         push(stackHead, pushed);
         opStackIndex++;
       } else { // if not, its gauranteed to be the same or of lower precedence
-        while (opStackIndex > 0 && opStack[opStackIndex-1] != '(') { // create a barrier at (
+        while (opStackIndex > 0 && *(peek(stackHead)) != '(') { // create a barrier at (
           output[outputIndex] = opStack[opStackIndex-1];
           char* popped = pop(stackHead); // pop
           enqueue(queueHead, popped); // enqueue
@@ -135,14 +169,14 @@ int main() {
       opStackIndex++;
     }
     else if (input[i] == ')') { // parenthesis ended
-      while (opStackIndex > 0 && opStack[opStackIndex-1] != '(') { // stops at (
+      while (opStackIndex > 0 && *(peek(stackHead)) != '(') { // stops at (
         output[outputIndex] = opStack[opStackIndex-1];
         char* popped = pop(stackHead); // pop
         enqueue(queueHead, popped); // enqueue
         outputIndex++;
         opStackIndex--;
       }
-      if (opStackIndex > 0 && opStack[opStackIndex-1] == '(') { // removes it after the stop
+      if (opStackIndex > 0 && *(peek(stackHead)) == '(') { // removes it after the stop
         char* popped = pop(stackHead); // pop
         opStackIndex--;
       }
@@ -176,57 +210,49 @@ int main() {
     cout << endl;
   }
 
+  // creating the tree
+  btnStack* btnsHead = NULL; // binary tree stack head
+  btn* test = NULL;
+  while (queueHead != NULL) {
+    // create the node
+    char* asdf = dequeue(queueHead);
+    btn* nn = NULL;
+    nn->value = asdf;
+
+    if (*asdf == '+' || *asdf == '-' || *asdf == '*' || *asdf == '/' || *asdf == '^') { // we need to make the last two in the stack combine under a tree
+      btnStack* temp = btnsHead;
+      while (temp->next != NULL) {
+	if (temp->next->next == NULL) {
+	  nn->left = temp;
+	  nn->right = temp->next;
+	  temp->next = NULL;
+	  temp = nn;
+	  break;
+	}
+      }
+    }
+    else { // add it to the end of the stack
+      btnStack* temp = btnsHead;
+      while (temp->next != NULL) {
+        if (temp->next == NULL) {
+          temp->next = nn;
+	  break;
+        }
+      }
+    }
+    
+    btnStack* temp = btnsHead;
+    while (temp->next != NULL) {
+      if (temp->next == NULL) {
+	temp->next = 
+      }
+      temp = temp->next;
+    }
+    
+    cout << *asdf << " ";
+  }
+  cout << endl;
+  
+  
   return 0;
-}
-
-
-
-
-
-
-/*class Queue {
-private:
-  char* value;
-  Queue* next;
-public:
-  // Constructor to initialize the queue
-  Queue() {    
-    next = NULL;
-  }
-  
-  // Destructor to free the allocated memory
-  ~Queue() {
-    delete value;
-    next = NULL;
-  }
-  };*/
-
-/*void enqueue(Node* &head, char* &data) {
-  // Add the element to the rear
-  if (head == NULL){
-    Node* newHead = new Node();
-    newHead->value = data;
-    head = newHead;
-  }
-  else if (head->next == NULL) {
-    Node* newNode = new Node();
-    newNode->value = data;
-    head->next = newNode;
-  }
-  else {
-    enqueue(head->next, data); // recurse until the end of the queue
-  }
-  }*/
-
-void dequeue(Node* head) {
-  /*if (size == 0) {
-    cout << "Queue is empty" << endl;
-    return;
-  }
-  
-  // Shift all elements to the left by one position
-  for (int i = 1; i < size; i++) {
-    queue[i - 1] = queue[i];
-  }
-  size--;*/
 }
