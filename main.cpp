@@ -20,6 +20,8 @@ char* dequeue(Node* &head);
 void push(Node* &head, char* &data);
 char* pop(Node* &head);
 char* peek(Node* &head);
+void pushTree(btnStack*& head, btn* node);
+btn* popTree(btnStack*& head);
 
 void enqueue(Node* &head, char* &data) {
   Node* newNode = new Node();
@@ -73,28 +75,39 @@ char* peek(Node* &head) {
   return head->value;
 }
 
-/*class btn { // binary tree node class
-public:
-  char* value;
-  btn* left;
-  btn* right;
-
-  btn() {
-    left = NULL;
-    right = NULL;
-    value = nullptr;
-  }
-  };*/
-
 struct btnStack {
   btn* value;
-  struct btn* next;
+  btnStack* next;
 
-  btnStack() {
+  btnStack(btn* node) {
     next = NULL;
-    value = NULL;
+    value = node;
   }
 };
+
+// push and pops, similar to the stack earlier
+void pushTree(btnStack*& head, btn* node) {
+    btnStack* newNode = new btnStack(node);
+    newNode->next = head;
+    head = newNode;
+}
+
+btn* popTree(btnStack*& head) {
+    if (!head) return nullptr;
+    btnStack* temp = head;
+    btn* node = temp->value;
+    head = head->next;
+    delete temp;
+    return node;
+}
+
+void printTree(btn* root, int depth = 0) {
+    if (!root) return;
+    printTree(root->right, depth + 1);
+    for (int i = 0; i < depth; i++) cout << "  ";
+    cout << *root->value << endl;
+    printTree(root->left, depth + 1);
+}
 
 int main() {
   Node* queueHead = NULL; // head of queue
@@ -211,47 +224,27 @@ int main() {
   }
 
   // creating the tree
-  btnStack* btnsHead = NULL; // binary tree stack head
+  btnStack* treeStack = nullptr; // binary tree stack head
   btn* test = NULL;
   while (queueHead != NULL) {
-    // create the node
-    char* asdf = dequeue(queueHead);
-    btn* nn = NULL;
-    nn->value = asdf;
+    // create and prepare the node
+    char* val = dequeue(queueHead);
+    btn* newNode = new btn();
+    newNode->value = val;
+    
+    if (*val == '+' || *val == '-' || *val == '*' || *val == '/' || *val == '^') { // we need to make the last two in the stack combine under a tree
+      newNode->right = pop(treeStack);
+      newNode->left = pop(treeStack);
+    }
 
-    if (*asdf == '+' || *asdf == '-' || *asdf == '*' || *asdf == '/' || *asdf == '^') { // we need to make the last two in the stack combine under a tree
-      btnStack* temp = btnsHead;
-      while (temp->next != NULL) {
-	if (temp->next->next == NULL) {
-	  nn->left = temp;
-	  nn->right = temp->next;
-	  temp->next = NULL;
-	  temp = nn;
-	  break;
-	}
-      }
-    }
-    else { // add it to the end of the stack
-      btnStack* temp = btnsHead;
-      while (temp->next != NULL) {
-        if (temp->next == NULL) {
-          temp->next = nn;
-	  break;
-        }
-      }
-    }
-    
-    btnStack* temp = btnsHead;
-    while (temp->next != NULL) {
-      if (temp->next == NULL) {
-	temp->next = 
-      }
-      temp = temp->next;
-    }
-    
-    cout << *asdf << " ";
+    // otherise, push it into the stack
+    push(treeStack, newNode);
   }
+  
   cout << endl;
+
+  // now we should only have one thing left in the stack. we'll just put that node into it's own thing
+  btn* treeFinish = pop(treeStack);
   
   
   return 0;
