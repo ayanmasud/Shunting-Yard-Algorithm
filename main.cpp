@@ -1,6 +1,14 @@
+/*Shunting Yard Algorithm: takes an expression in infix notation, runs the
+  shunting yard algorithm using stack linked lists and queue linked lists to
+  create a queue with the postfix expression. create a binary expression tree
+  from that queue and print the infix, postfix, and prefix notations using
+  that tree.
+  Author: Ayan Masud
+  Date: 3/9/2025
+ */
+
 #include <iostream>
 #include <cstring>
-// good progress today maybe. took forever but got the postfix and infix to finally work and after cleaning up some code and adding comments, it stopped working bruh. im gonna figure this out tomorrow
 
 using namespace std;
 
@@ -164,9 +172,10 @@ void printPostfix(btn* node) {
     return;
   }
 
-  printPostfix(node->getLeft()); // go through the left half of the tree
-  printPostfix(node->getRight()); // also go through the right half
-  cout << *node->getValue(); // print the value of the node
+  // goes in the order of left right and then the parent of those
+  printPostfix(node->getLeft());
+  printPostfix(node->getRight());
+  cout << *node->getValue();
 }
 
 void printInfix(btn* node) {
@@ -179,9 +188,10 @@ void printInfix(btn* node) {
       cout << "(";
   }
 
-  printInfix(node->getLeft()); // go through the left half of the tree
-  cout << *node->getValue(); // print that value, typically an operator
-  printInfix(node->getRight()); // go through the right
+  // goes in the order of left, parent, right
+  printInfix(node->getLeft());
+  cout << *node->getValue();
+  printInfix(node->getRight());
 
   // put ending parenthesis for the same reason after it printed
   if (node->getLeft() != nullptr || node->getRight() != nullptr) {
@@ -194,9 +204,10 @@ void printPrefix(btn* node) {
     return;
   }
 
-  cout << *node->getValue(); // print the character
-  printPrefix(node->getLeft()); // go through the left of the tree
-  printPrefix(node->getRight()); // then go through the right
+  // goes in the order of parent, left, right
+  cout << *node->getValue();
+  printPrefix(node->getLeft());
+  printPrefix(node->getRight());
 }
 
 int main() {
@@ -205,14 +216,26 @@ int main() {
   
   cout << "Type an expression in infix notation: ";
 
-  char input[20];
-  cin.getline(input, 20);
+  char input[80];
+  cin.getline(input, 80);
+
+  // my algorithm doesn't account for spaces so i remove them from the input there
+  int i = 0;
+  int j = 0;
+  while (input[i]) {
+    if (input[i] != ' ') {
+      input[j++] = input[i];
+    }
+    i++;
+  }
+  input[j] = '\0';
+  
   int inputLen = strlen(input);
   
-  char opStack[20];
+  char opStack[80];
   int opStackIndex = 0;
 
-  char output[20];
+  char output[80];
   int outputIndex = 0;
   
   // shunting yard algorithm
@@ -247,7 +270,7 @@ int main() {
       if (opStackIndex == 0) { // if its the first in the stack.
         opStack[opStackIndex] = input[i];
         char* pushed = new char(input[i]);
-        push(stackHead, pushed);
+        push(stackHead, pushed); // push
         opStackIndex++;
       } else { // if not, its gauranteed to be the same or of lower precedence
         while (opStackIndex > 0 && *(peek(stackHead)) != '(') { // create a barrier at (
@@ -291,13 +314,13 @@ int main() {
   }
 
   // add the rest of the stack to the queue cause its now done with the other chars
-  /*while (opStackIndex > 0) {
+  while (opStackIndex > 0) {
     output[outputIndex] = opStack[opStackIndex-1];
     char* popped = pop(stackHead);
-    enqueue(queueHead, popped);
+    enqueue(queueHead, popped); // queue
     outputIndex++;
     opStackIndex--;
-  }*/
+  }
 
   /*// display the queue:
   if (queueHead != NULL) {
